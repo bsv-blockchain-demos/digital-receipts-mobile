@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert, RefreshControl } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert, RefreshControl, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -28,10 +28,15 @@ export default function ReceiptsScreen() {
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [receiptToDelete, setReceiptToDelete] = useState<Receipt | null>(null);
+  const [selectedStores, setSelectedStores] = useState<string[]>([]);
+  const [availableStores, setAvailableStores] = useState<string[]>([]);
+  const [showStoreModal, setShowStoreModal] = useState(false);
+  const [filteredReceipts, setFilteredReceipts] = useState<Receipt[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       loadReceipts();
+      loadAvailableStores();
     }, [])
   );
 
@@ -45,18 +50,66 @@ export default function ReceiptsScreen() {
           new Date(b.scannedAt).getTime() - new Date(a.scannedAt).getTime()
         );
         setReceipts(sortedReceipts);
+        filterReceipts(sortedReceipts, selectedStores);
       }
     } catch (error) {
       console.error('Error loading receipts:', error);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
+  };
+
+  const loadAvailableStores = async () => {
+    try {
+      const storedStores = await AsyncStorage.getItem('storeNames');
+      if (storedStores) {
+        const parsedStores = JSON.parse(storedStores);
+        setAvailableStores(parsedStores);
+      }
+    } catch (error) {
+      console.error('Error loading store names:', error);
+    }
+  };
+
+  const filterReceipts = (receiptsToFilter: Receipt[], storeFilters: string[]) => {
+    if (storeFilters.length === 0) {
+      setFilteredReceipts(receiptsToFilter);
+      return;
+    }
+
+    const filtered = receiptsToFilter.filter(receipt => {
+      const storeName = receipt.fullReceiptData?.store?.name;
+      return storeName && storeFilters.includes(storeName);
+    });
+
+    setFilteredReceipts(filtered);
   };
 
   const onRefresh = () => {
     setRefreshing(true);
     loadReceipts();
+    loadAvailableStores();
+  };
+
+  // Store filtering functions
+  const toggleStoreSelection = (storeName: string) => {
+    const newSelection = selectedStores.includes(storeName)
+      ? selectedStores.filter(store => store !== storeName)
+      : [...selectedStores, storeName];
+    
+    setSelectedStores(newSelection);
+    filterReceipts(receipts, newSelection);
+  };
+
+  const removeStoreFilter = (storeName: string) => {
+    const newSelection = selectedStores.filter(store => store !== storeName);
+    setSelectedStores(newSelection);
+    filterReceipts(receipts, newSelection);
+  };
+
+  const clearAllFilters = () => {
+    setSelectedStores([]);
+    filterReceipts(receipts, []);
   };
 
   const showDeleteConfirmation = (receipt: Receipt) => {
@@ -82,6 +135,101 @@ export default function ReceiptsScreen() {
   const cancelDelete = () => {
     setShowDeleteModal(false);
     setReceiptToDelete(null);
+  };
+
+  // Filter Tags Component
+  const FilterTags = () => {
+    return (
+      <View style={styles.filterContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScrollView}>
+          {/* Add Filter Button */}
+          <TouchableOpacity 
+            style={styles.addFilterTag}
+            onPress={() => setShowStoreModal(true)}
+          >
+            <Ionicons name="add" size={16} color="#94a3b8" />
+            <Text style={styles.addFilterText}>Filter by store</Text>
+          </TouchableOpacity>
+          
+          {/* Selected Store Tags */}
+          {selectedStores.map((storeName) => (
+            <TouchableOpacity 
+              key={storeName}
+              style={styles.filterTag}
+              onPress={() => removeStoreFilter(storeName)}
+            >
+              <Text style={styles.filterTagText}>{storeName}</Text>
+              <Ionicons name="close" size={14} color="#a855f7" />
+            </TouchableOpacity>
+          ))}
+          
+          {/* Clear All Button */}
+          {selectedStores.length > 0 && (
+            <TouchableOpacity 
+              style={styles.addFilterTag}
+              onPress={clearAllFilters}
+            >
+              <Ionicons name="refresh" size={16} color="#94a3b8" />
+              <Text style={styles.addFilterText}>Clear all</Text>
+            </TouchableOpacity>
+          )}
+        </ScrollView>
+      </View>
+    );
+  };
+
+  // Store Selection Modal Component
+  const StoreSelectionModal = () => {
+    if (!showStoreModal) return null;
+
+    return (
+      <View style={modalStyles.modalBackdrop}>
+        <View style={modalStyles.storeSelectionModal}>
+          {/* Header */}
+          <View style={modalStyles.storeSelectionHeader}>
+            <Text style={modalStyles.storeSelectionTitle}>Filter by Store</Text>
+            <TouchableOpacity onPress={() => setShowStoreModal(false)}>
+              <Ionicons name="close" size={24} color="#64748b" />
+            </TouchableOpacity>
+          </View>
+          
+          {/* Store List */}
+          <ScrollView style={modalStyles.storeList}>
+            {availableStores.length === 0 ? (
+              <Text style={modalStyles.emptyStoresText}>
+                No stores available. Scan some receipts first!
+              </Text>
+            ) : (
+              availableStores.map((storeName) => {
+                const isSelected = selectedStores.includes(storeName);
+                return (
+                  <TouchableOpacity
+                    key={storeName}
+                    style={[
+                      modalStyles.storeItem,
+                      isSelected && modalStyles.storeItemSelected
+                    ]}
+                    onPress={() => toggleStoreSelection(storeName)}
+                  >
+                    <Ionicons 
+                      name={isSelected ? "checkbox" : "square-outline"} 
+                      size={20} 
+                      color={isSelected ? "#a855f7" : "#64748b"} 
+                    />
+                    <Text style={[
+                      modalStyles.storeItemText,
+                      isSelected && modalStyles.storeItemTextSelected
+                    ]}>
+                      {storeName}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })
+            )}
+          </ScrollView>
+        </View>
+      </View>
+    );
   };
 
   const clearAllReceipts = () => {
@@ -370,12 +518,15 @@ export default function ReceiptsScreen() {
         </View>
       </View>
 
+      {/* Filter Tags */}
+      <FilterTags />
+
       {/* Receipts List */}
       <FlatList
-        data={receipts}
+        data={filteredReceipts}
         renderItem={renderReceiptItem}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={[styles.listContainer, receipts.length === 0 && styles.emptyContainer]}
+        contentContainerStyle={[styles.listContainer, filteredReceipts.length === 0 && styles.emptyContainer]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -388,6 +539,9 @@ export default function ReceiptsScreen() {
         ListEmptyComponent={renderEmptyState}
       />
 
+      {/* Store Selection Modal */}
+      <StoreSelectionModal />
+      
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal />
       

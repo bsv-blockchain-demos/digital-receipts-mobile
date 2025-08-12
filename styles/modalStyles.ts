@@ -299,4 +299,81 @@ export const modalStyles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
   },
+
+  // Disabled Button States
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  buttonTextDisabled: {
+    opacity: 0.7,
+  },
+
+  // Store Selection Modal
+  storeSelectionModal: {
+    backgroundColor: 'rgba(30, 41, 59, 0.95)', // slate-800/95
+    borderRadius: 16,
+    margin: 20,
+    maxHeight: '70%',
+    maxWidth: 400,
+    width: '90%',
+    borderWidth: 1,
+    borderColor: 'rgba(51, 65, 85, 0.5)', // slate-700/50
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 16,
+  },
+  storeSelectionHeader: {
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(51, 65, 85, 0.3)',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  storeSelectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'white',
+  },
+  storeList: {
+    maxHeight: 300,
+    padding: 20,
+  },
+  storeItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginVertical: 4,
+    backgroundColor: 'rgba(51, 65, 85, 0.3)',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(51, 65, 85, 0.5)',
+  },
+  storeItemSelected: {
+    backgroundColor: 'rgba(168, 85, 247, 0.2)',
+    borderColor: 'rgba(168, 85, 247, 0.4)',
+  },
+  storeItemText: {
+    flex: 1,
+    fontSize: 14,
+    color: 'white',
+    marginLeft: 12,
+  },
+  storeItemTextSelected: {
+    color: '#a855f7',
+    fontWeight: '500',
+  },
+  emptyStoresText: {
+    textAlign: 'center',
+    color: '#94a3b8',
+    fontSize: 14,
+    fontStyle: 'italic',
+    marginTop: 20,
+  },
 });

@@ -365,4 +365,47 @@ export const receiptsStyles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
+
+  // Filter Tags
+  filterContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  filterScrollView: {
+    flexDirection: 'row',
+  },
+  filterTag: {
+    backgroundColor: 'rgba(168, 85, 247, 0.2)', // purple-500/20
+    borderColor: 'rgba(168, 85, 247, 0.4)', // purple-500/40
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginRight: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  filterTagText: {
+    color: '#a855f7', // purple-500
+    fontSize: 12,
+    fontWeight: '500',
+    marginRight: 4,
+  },
+  addFilterTag: {
+    backgroundColor: 'rgba(51, 65, 85, 0.3)', // slate-700/30
+    borderColor: 'rgba(51, 65, 85, 0.5)', // slate-700/50
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginRight: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  addFilterText: {
+    color: '#94a3b8', // slate-400
+    fontSize: 12,
+    fontWeight: '500',
+    marginLeft: 4,
+  },
 });

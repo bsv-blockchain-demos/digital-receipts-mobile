@@ -10,6 +10,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { getTransactionByID } from '../../hooks/getTransactionByID';
 import { SymmetricKey } from '@bsv/sdk';
 import { scannerStyles as styles } from '../../styles/scannerStyles';
+import { ScannerModals } from '../../components/ScannerModals';
 
 const { width, height } = Dimensions.get('window');
 
@@ -17,8 +18,16 @@ export default function QRScannerScreen() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const [scanning, setScanning] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [receiptsCount, setReceiptsCount] = useState(0);
   const [cameraKey, setCameraKey] = useState(0); // Force camera remount
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [pendingReceiptData, setPendingReceiptData] = useState<any>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorTitle, setErrorTitle] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const appState = useRef(AppState.currentState);
 
   useEffect(() => {
@@ -87,46 +96,41 @@ export default function QRScannerScreen() {
       const receiptData = JSON.parse(data);
 
       if (receiptData.txid && receiptData.symkeyString && receiptData.timestamp) {
-        // Save the receipt data
+        // Save the receipt data (handles duplicates and success feedback)
         await saveReceipt(receiptData);
-
-        Alert.alert(
-          '🎉 Receipt Scanned!',
-          `Successfully saved digital receipt\n\nTransaction ID: ${receiptData.txid.substring(0, 8)}...\nTimestamp: ${new Date(receiptData.timestamp).toLocaleDateString()}`,
-          [
-            {
-              text: 'Scan Another',
-              onPress: () => {
-                setScanned(false);
-                setScanning(true);
-              }
-            },
-            {
-              text: 'View Receipts',
-              onPress: () => {
-                // Navigate to receipts tab (will be implemented)
-                console.log('Navigate to receipts');
-              }
-            }
-          ]
-        );
       } else {
-        Alert.alert(
-          '❌ Invalid QR Code',
-          'This QR code does not contain valid receipt data.',
-          [{ text: 'Try Again', onPress: () => { setScanned(false); setScanning(true); } }]
-        );
+        setErrorTitle('Invalid QR Code');
+        setErrorMessage('This QR code does not contain valid receipt data.');
+        setShowErrorModal(true);
       }
     } catch (error) {
-      Alert.alert(
-        '❌ Invalid QR Code',
-        'Unable to read QR code data. Please ensure this is a valid receipt QR code.',
-        [{ text: 'Try Again', onPress: () => { setScanned(false); setScanning(true); } }]
-      );
+      setErrorTitle('Invalid QR Code');
+      setErrorMessage('Unable to read QR code data. Please ensure this is a valid receipt QR code.');
+      setShowErrorModal(true);
     }
   };
 
   const saveReceipt = async (receiptData: any) => {
+    try {
+      const existingReceipts = await AsyncStorage.getItem('scannedReceipts');
+      const receipts = existingReceipts ? JSON.parse(existingReceipts) : [];
+
+      // Check if txid already exists in localStorage
+      if (receipts.some((receipt: any) => receipt.txid === receiptData.txid)) {
+        setPendingReceiptData(receiptData);
+        setShowDuplicateModal(true);
+        return;
+      }
+
+      // If no duplicate, save directly
+      await actuallySaveReceipt(receiptData);
+    } catch (error) {
+      console.error('Error saving receipt:', error);
+    }
+  };
+
+  const actuallySaveReceipt = async (receiptData: any) => {
+    setSaving(true);
     try {
       const existingReceipts = await AsyncStorage.getItem('scannedReceipts');
       const receipts = existingReceipts ? JSON.parse(existingReceipts) : [];
@@ -146,6 +150,14 @@ export default function QRScannerScreen() {
       const key = new SymmetricKey(hexToBytes(receiptData.symkeyString));
       const decryptedReceiptData = decryptJSON(encryptedReceiptData, key);
 
+      // Save store name to localStorage if decryption was successful and store name exists
+      if (decryptedReceiptData?.store?.name) {
+        console.log("Attempting to save store name: " + decryptedReceiptData.store.name);
+        await saveStoreName(decryptedReceiptData.store.name);
+      } else {
+        console.log("No store name found in decrypted receipt data");
+      }
+
       // Add timestamp for when it was scanned and include decrypted data
       const newReceipt = {
         ...receiptData,
@@ -157,6 +169,10 @@ export default function QRScannerScreen() {
       receipts.push(newReceipt);
       await AsyncStorage.setItem('scannedReceipts', JSON.stringify(receipts));
       setReceiptsCount(receipts.length);
+      
+      // Show success modal
+      setSuccessMessage('Receipt has been saved successfully!');
+      setShowSuccessModal(true);
     } catch (error) {
       console.error('Error saving receipt:', error);
       // If decryption fails, still save the basic receipt data
@@ -173,6 +189,78 @@ export default function QRScannerScreen() {
       receipts.push(newReceipt);
       await AsyncStorage.setItem('scannedReceipts', JSON.stringify(receipts));
       setReceiptsCount(receipts.length);
+      
+      setSuccessMessage('Receipt saved but decryption failed.');
+      setShowSuccessModal(true);
+    }
+    setSaving(false);
+  };
+
+  const confirmSaveDuplicate = async () => {
+    if (pendingReceiptData) {
+      await actuallySaveReceipt(pendingReceiptData);
+      setShowDuplicateModal(false);
+      setPendingReceiptData(null);
+    }
+  };
+
+  const cancelSaveDuplicate = () => {
+    setShowDuplicateModal(false);
+    setPendingReceiptData(null);
+    // Resume scanning
+    setScanned(false);
+    setScanning(true);
+  };
+
+  // Modal handler functions
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    setSuccessMessage('');
+  };
+
+  const handleScanAnother = () => {
+    setShowSuccessModal(false);
+    setSuccessMessage('');
+    setScanned(false);
+    setScanning(true);
+  };
+
+  const handleCloseErrorModal = () => {
+    setShowErrorModal(false);
+    setErrorTitle('');
+    setErrorMessage('');
+  };
+
+  const handleTryAgain = () => {
+    setShowErrorModal(false);
+    setErrorTitle('');
+    setErrorMessage('');
+    setScanned(false);
+    setScanning(true);
+  };
+
+  // Store Names Management
+  const saveStoreName = async (storeName: string) => {
+    try {
+      const existingStores = await AsyncStorage.getItem('storeNames');
+      const stores = existingStores ? JSON.parse(existingStores) : [];
+      
+      // Only add if store name doesn't already exist (case-insensitive)
+      const storeExists = stores.some((store: string) => 
+        store.toLowerCase() === storeName.toLowerCase()
+      );
+      
+      if (!storeExists) {
+        stores.push(storeName);
+        // Sort alphabetically for better organization
+        stores.sort((a: string, b: string) => a.localeCompare(b));
+        await AsyncStorage.setItem('storeNames', JSON.stringify(stores));
+        console.log('Store name saved:', storeName);
+      } else {
+        console.log('Store name already exists:', storeName);
+      }
+    } catch (error) {
+      console.error('Error saving store name:', error);
     }
   };
 
@@ -189,6 +277,8 @@ export default function QRScannerScreen() {
     const jsonString = key.decrypt(encryptedData, 'utf8') as string;
     return JSON.parse(jsonString);
   }
+
+
 
   if (hasPermission === null) {
     return (
@@ -301,6 +391,24 @@ export default function QRScannerScreen() {
           </LinearGradient>
         </TouchableOpacity>
       </View>
+
+      {/* All Scanner Modals */}
+      <ScannerModals
+        showDuplicateModal={showDuplicateModal}
+        pendingReceiptData={pendingReceiptData}
+        saving={saving}
+        onConfirmSaveDuplicate={confirmSaveDuplicate}
+        onCancelSaveDuplicate={cancelSaveDuplicate}
+        showSuccessModal={showSuccessModal}
+        successMessage={successMessage}
+        onCloseSuccessModal={handleCloseSuccessModal}
+        onScanAnother={handleScanAnother}
+        showErrorModal={showErrorModal}
+        errorTitle={errorTitle}
+        errorMessage={errorMessage}
+        onCloseErrorModal={handleCloseErrorModal}
+        onTryAgain={handleTryAgain}
+      />
     </View>
   );
 }
