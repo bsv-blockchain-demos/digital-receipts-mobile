@@ -6,7 +6,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { receiptsStyles as styles } from '../../styles/receiptsStyles';
+import { receiptsStyles } from '../../styles/receiptsStyles';
+import { modalStyles } from '../../styles/modalStyles';
+
+const styles = receiptsStyles;
 
 interface Receipt {
   id: string;
@@ -23,6 +26,8 @@ export default function ReceiptsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<Receipt | null>(null);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [receiptToDelete, setReceiptToDelete] = useState<Receipt | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -54,27 +59,29 @@ export default function ReceiptsScreen() {
     loadReceipts();
   };
 
-  const deleteReceipt = (id: string) => {
-    Alert.alert(
-      'Delete Receipt',
-      'Are you sure you want to delete this receipt?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const updatedReceipts = receipts.filter(receipt => receipt.id !== id);
-              await AsyncStorage.setItem('scannedReceipts', JSON.stringify(updatedReceipts));
-              setReceipts(updatedReceipts);
-            } catch (error) {
-              console.error('Error deleting receipt:', error);
-            }
-          }
-        }
-      ]
-    );
+  const showDeleteConfirmation = (receipt: Receipt) => {
+    setReceiptToDelete(receipt);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!receiptToDelete) return;
+    
+    try {
+      const updatedReceipts = receipts.filter(receipt => receipt.id !== receiptToDelete.id);
+      setReceipts(updatedReceipts);
+      await AsyncStorage.setItem('scannedReceipts', JSON.stringify(updatedReceipts));
+    } catch (error) {
+      console.error('Error deleting receipt:', error);
+    } finally {
+      setShowDeleteModal(false);
+      setReceiptToDelete(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setReceiptToDelete(null);
   };
 
   const clearAllReceipts = () => {
@@ -124,7 +131,7 @@ export default function ReceiptsScreen() {
           </View>
           <TouchableOpacity
             style={styles.deleteButton}
-            onPress={() => deleteReceipt(item.id)}
+            onPress={() => showDeleteConfirmation(item)}
           >
             <Ionicons name="trash-outline" size={20} color="#ef4444" />
           </TouchableOpacity>
@@ -168,6 +175,45 @@ export default function ReceiptsScreen() {
     </View>
   );
 
+  // Delete Confirmation Modal Component
+  const DeleteConfirmationModal = () => {
+    if (!showDeleteModal || !receiptToDelete) return null;
+
+    return (
+      <View style={modalStyles.modalBackdrop}>
+        <View style={modalStyles.confirmationModal}>
+          {/* Delete Confirmation Content */}
+          <View style={modalStyles.receiptPaper}>
+            <View style={modalStyles.errorContainer}>
+              <Ionicons name="warning" size={48} color="#ef4444" />
+              <Text style={modalStyles.errorTitle}>Delete Receipt?</Text>
+              <Text style={modalStyles.errorText}>
+                Are you sure you want to delete this receipt? This action cannot be undone.
+              </Text>
+              
+              {/* Action Buttons */}
+              <View style={modalStyles.deleteModalButtons}>
+                <TouchableOpacity 
+                  style={modalStyles.cancelButton}
+                  onPress={cancelDelete}
+                >
+                  <Text style={modalStyles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={modalStyles.deleteConfirmButton}
+                  onPress={confirmDelete}
+                >
+                  <Text style={modalStyles.deleteConfirmButtonText}>Delete</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
   // Receipt Detail Modal Component
   const ReceiptDetailModal = () => {
     if (!showReceiptModal || !selectedReceipt) return null;
@@ -176,115 +222,132 @@ export default function ReceiptsScreen() {
 
     if (!receiptData) {
       return (
-        <View style={styles.modalOverlay}>
-          <BlurView intensity={80} style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Receipt Details</Text>
-              <TouchableOpacity onPress={() => setShowReceiptModal(false)}>
-                <Ionicons name="close" size={24} color="white" />
-              </TouchableOpacity>
+        <View style={modalStyles.modalBackdrop}>
+          <View style={modalStyles.receiptModal}>
+            {/* Close Button */}
+            <TouchableOpacity 
+              style={modalStyles.closeButton} 
+              onPress={() => setShowReceiptModal(false)}
+            >
+              <Ionicons name="close" size={24} color="#64748b" />
+            </TouchableOpacity>
+
+            {/* Error Content */}
+            <View style={modalStyles.receiptPaper}>
+              <View style={modalStyles.errorContainer}>
+                <Ionicons name="warning" size={48} color="#ef4444" />
+                <Text style={modalStyles.errorTitle}>Receipt Data Unavailable</Text>
+                <Text style={modalStyles.errorText}>
+                  The full receipt data could not be decrypted or retrieved from the blockchain.
+                </Text>
+              </View>
             </View>
-            <View style={styles.errorContainer}>
-              <Ionicons name="warning" size={48} color="#ef4444" />
-              <Text style={styles.errorTitle}>Receipt Data Unavailable</Text>
-              <Text style={styles.errorText}>
-                The full receipt data could not be decrypted or retrieved from the blockchain.
-              </Text>
-            </View>
-          </BlurView>
+          </View>
         </View>
       );
     }
 
     return (
-      <View style={styles.modalOverlay}>
-        <BlurView intensity={80} style={styles.modalContainer}>
-          {/* Modal Header */}
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Receipt Details</Text>
-            <TouchableOpacity onPress={() => setShowReceiptModal(false)}>
-              <Ionicons name="close" size={24} color="white" />
+      <View style={modalStyles.modalBackdrop}>
+        <View style={modalStyles.receiptModal}>
+            {/* Close Button */}
+            <TouchableOpacity 
+              style={modalStyles.closeButton} 
+              onPress={() => setShowReceiptModal(false)}
+            >
+              <Ionicons name="close" size={24} color="#64748b" />
             </TouchableOpacity>
-          </View>
 
-          {/* Receipt Content */}
-          <View style={styles.receiptContent}>
-            {/* Store Info */}
-            <View style={styles.storeSection}>
-              <Text style={styles.storeName}>{receiptData.store?.name}</Text>
-              <Text style={styles.storeAddress}>{receiptData.store?.address}</Text>
-              <Text style={styles.storePhone}>{receiptData.store?.phone}</Text>
-              <Text style={styles.receiptId}>Receipt ID: {receiptData.receiptId}</Text>
-              <Text style={styles.receiptDate}>
-                {receiptData.transaction?.date} {receiptData.transaction?.time}
-              </Text>
-            </View>
-
-            {/* Cashier Info */}
-            <View style={styles.cashierSection}>
-              <Text style={styles.cashierText}>
-                Cashier: {receiptData.cashier?.name} ({receiptData.cashier?.id})
-              </Text>
-            </View>
-
-            {/* Items Table */}
-            <View style={styles.itemsSection}>
-              <Text style={styles.sectionTitle}>Items</Text>
-              <View style={styles.tableHeader}>
-                <Text style={[styles.tableHeaderText, { flex: 2 }]}>Item</Text>
-                <Text style={[styles.tableHeaderText, { flex: 1 }]}>Price</Text>
-                <Text style={[styles.tableHeaderText, { flex: 1 }]}>VAT</Text>
-                <Text style={[styles.tableHeaderText, { flex: 1 }]}>Total</Text>
+            {/* Receipt Paper */}
+            <View style={modalStyles.receiptPaper}>
+              {/* Store Header */}
+              <View style={modalStyles.receiptHeader}>
+                <Text style={modalStyles.receiptTitle}>Receipt</Text>
+                <Text style={modalStyles.receiptTimestamp}>
+                  {receiptData.transaction?.date} {receiptData.transaction?.time}
+                </Text>
               </View>
+
+              {/* Line Items Header */}
+              <View style={modalStyles.lineItemsHeader}>
+                <Text style={[modalStyles.lineHeaderText, { flex: 3 }]}>Line Items</Text>
+                <Text style={[modalStyles.lineHeaderText, { flex: 1, textAlign: 'right' }]}>Price</Text>
+                <Text style={[modalStyles.lineHeaderText, { flex: 1, textAlign: 'right' }]}>VAT</Text>
+                <Text style={[modalStyles.lineHeaderText, { flex: 1, textAlign: 'right' }]}>Total</Text>
+              </View>
+
+              {/* Items */}
               {receiptData.transaction?.items?.map((item: any, index: number) => (
-                <View key={index} style={styles.tableRow}>
-                  <View style={{ flex: 2 }}>
-                    <Text style={styles.itemDescription}>{item.description}</Text>
-                    <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
+                <View key={index} style={modalStyles.receiptItem}>
+                  <View style={{ flex: 3 }}>
+                    <Text style={modalStyles.itemName}>{item.description}</Text>
                   </View>
-                  <Text style={[styles.tableText, { flex: 1 }]}>${item.unitPrice?.toFixed(2)}</Text>
-                  <Text style={[styles.tableText, { flex: 1 }]}>{(item.taxRate * 100)?.toFixed(0)}%</Text>
-                  <Text style={[styles.tableText, { flex: 1 }]}>${item.lineTotal?.toFixed(2)}</Text>
+                  <Text style={[modalStyles.itemPrice, { flex: 1, textAlign: 'right' }]}>
+                    {item.unitPrice?.toFixed(2)}
+                  </Text>
+                  <Text style={[modalStyles.itemVat, { flex: 1, textAlign: 'right' }]}>
+                    {(item.taxRate * 100)?.toFixed(0)}%
+                  </Text>
+                  <Text style={[modalStyles.itemTotal, { flex: 1, textAlign: 'right' }]}>
+                    {item.lineTotal?.toFixed(2)}
+                  </Text>
                 </View>
               ))}
-            </View>
 
-            {/* Totals */}
-            <View style={styles.totalsSection}>
-              <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Sum total exc VAT</Text>
-                <Text style={styles.totalValue}>${receiptData.transaction?.totals?.subTotal?.toFixed(2)}</Text>
+              {/* Totals Section */}
+              <View style={modalStyles.receiptTotals}>
+                <Text style={modalStyles.totalsTitle}>Sum total exc VAT</Text>
+                <Text style={modalStyles.totalsValue}>€{receiptData.transaction?.totals?.subTotal?.toFixed(2)}</Text>
               </View>
-              <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Payment method</Text>
-                <Text style={styles.totalValue}>{receiptData.transaction?.payment?.method}</Text>
-              </View>
-              <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>VAT 7%</Text>
-                <Text style={styles.totalValue}>${receiptData.transaction?.totals?.taxTotal?.toFixed(2)}</Text>
-              </View>
-              <View style={[styles.totalRow, styles.grandTotalRow]}>
-                <Text style={styles.grandTotalLabel}>CASH</Text>
-                <Text style={styles.grandTotalValue}>${receiptData.transaction?.totals?.grandTotal?.toFixed(2)}</Text>
-              </View>
-            </View>
 
-            {/* Environmental Message */}
-            <View style={styles.environmentalSection}>
-              <Ionicons name="leaf" size={16} color="#10b981" />
-              <Text style={styles.environmentalText}>
-                🌱 With this receipt you save 0.5 g of paper and 0.5 g of CO₂
+              <View style={modalStyles.receiptTotals}>
+                <Text style={modalStyles.totalsTitle}>Payment method</Text>
+                <Text style={modalStyles.totalsValue}>{receiptData.transaction?.payment?.method || 'Cash'}</Text>
+              </View>
+
+              <View style={modalStyles.receiptTotals}>
+                <Text style={modalStyles.totalsTitle}>VAT 7%</Text>
+                <Text style={modalStyles.totalsValue}>€{receiptData.transaction?.totals?.taxTotal?.toFixed(2)}</Text>
+              </View>
+
+              <View style={modalStyles.receiptTotals}>
+                <Text style={modalStyles.totalsTitle}>CASH</Text>
+                <Text style={modalStyles.finalTotal}>{receiptData.transaction?.totals?.grandTotal?.toFixed(2)}</Text>
+              </View>
+
+              {/* Store Info */}
+              <View style={modalStyles.storeInfo}>
+                <Text style={modalStyles.storeText}>{receiptData.store?.name}</Text>
+                <Text style={modalStyles.storeText}>{receiptData.store?.address}</Text>
+                <Text style={modalStyles.storeText}>{receiptData.store?.phone}</Text>
+                <Text style={modalStyles.receiptIdText}>Receipt ID: {receiptData.receiptId}</Text>
+              </View>
+
+              {/* Environmental Message */}
+              <View style={modalStyles.environmentalBanner}>
+                <Ionicons name="heart" size={16} color="#10b981" />
+                <Text style={modalStyles.environmentalMessage}>
+                  With this receipt you save 0.5 g of paper and 0.5 g of CO₂
+                </Text>
+              </View>
+              
+              <Text style={modalStyles.environmentalSubtext}>
+                Let's keep our planet green - Thank you!
+              </Text>
+
+              {/* QR Code Section */}
+              <View style={modalStyles.qrSection}>
+                <Text style={modalStyles.qrText}>Scan for PDF</Text>
+                <Text style={modalStyles.qrSubtext}>For receipt as e-mail</Text>
+              </View>
+
+              {/* Footer */}
+              <Text style={modalStyles.receiptFooter}>
+                This receipt was rendered with the help of our partner Bakery Gmbh
               </Text>
             </View>
-            <Text style={styles.environmentalSubtext}>
-              Let's keep our planet green - Thank you!
-            </Text>
-
-            {/* Footer Message */}
-            <Text style={styles.footerMessage}>{receiptData.footer?.message}</Text>
           </View>
-        </BlurView>
-      </View>
+        </View>
     );
   };
 
@@ -325,6 +388,10 @@ export default function ReceiptsScreen() {
         ListEmptyComponent={renderEmptyState}
       />
 
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal />
+      
+      {/* Receipt Detail Modal */}
       <ReceiptDetailModal />
     </View>
   );
