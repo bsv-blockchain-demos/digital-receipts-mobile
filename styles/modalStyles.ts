@@ -376,4 +376,17 @@ export const modalStyles = StyleSheet.create({
     fontStyle: 'italic',
     marginTop: 20,
   },
+  retryButton: {
+    backgroundColor: '#10b981', // green-500
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
 });

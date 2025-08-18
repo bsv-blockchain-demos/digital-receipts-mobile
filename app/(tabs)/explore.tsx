@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert, RefreshControl, ScrollView } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, FlatList, TouchableOpacity, RefreshControl, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { receiptsStyles } from '../../styles/receiptsStyles';
 import { modalStyles } from '../../styles/modalStyles';
+import saveReceiptRetry from '../../hooks/saveReceiptRetry';
+import { ExploreModals } from '../../components/modals/ExploreModals';
 
 const styles = receiptsStyles;
 
@@ -32,6 +33,10 @@ export default function ReceiptsScreen() {
   const [availableStores, setAvailableStores] = useState<string[]>([]);
   const [showStoreModal, setShowStoreModal] = useState(false);
   const [filteredReceipts, setFilteredReceipts] = useState<Receipt[]>([]);
+  const [showRetrySuccessModal, setShowRetrySuccessModal] = useState(false);
+  const [showRetryErrorModal, setShowRetryErrorModal] = useState(false);
+  const [retryErrorMessage, setRetryErrorMessage] = useState('');
+  const [currentRetryReceipt, setCurrentRetryReceipt] = useState<Receipt | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -137,6 +142,26 @@ export default function ReceiptsScreen() {
     setReceiptToDelete(null);
   };
 
+  const saveRetry = async (receiptData: Receipt) => {
+    try {
+      setShowReceiptModal(false);
+      setCurrentRetryReceipt(receiptData);
+      const retryResult =await saveReceiptRetry(receiptData);
+      if (!retryResult) {
+        setRetryErrorMessage('Failed to retry fetching receipt data');
+        setShowRetryErrorModal(true);
+        return;
+      }
+      // Reload receipts to get updated data
+      await loadReceipts();
+      setShowRetrySuccessModal(true);
+    } catch (error) {
+      console.error('Error saving receipt:', error);
+      setRetryErrorMessage(error instanceof Error ? error.message : 'Failed to retry fetching receipt data');
+      setShowRetryErrorModal(true);
+    }
+  };
+
   // Filter Tags Component
   const FilterTags = () => {
     return (
@@ -229,28 +254,6 @@ export default function ReceiptsScreen() {
           </ScrollView>
         </View>
       </View>
-    );
-  };
-
-  const clearAllReceipts = () => {
-    Alert.alert(
-      'Clear All Receipts',
-      'Are you sure you want to delete all receipts? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear All',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await AsyncStorage.removeItem('scannedReceipts');
-              setReceipts([]);
-            } catch (error) {
-              console.error('Error clearing receipts:', error);
-            }
-          }
-        }
-      ]
     );
   };
 
@@ -367,6 +370,7 @@ export default function ReceiptsScreen() {
     if (!showReceiptModal || !selectedReceipt) return null;
 
     const receiptData = selectedReceipt.fullReceiptData;
+    console.log("Selected receipt data: ", selectedReceipt)
 
     if (!receiptData) {
       return (
@@ -388,6 +392,15 @@ export default function ReceiptsScreen() {
                 <Text style={modalStyles.errorText}>
                   The full receipt data could not be decrypted or retrieved from the blockchain.
                 </Text>
+                <TouchableOpacity 
+                  style={modalStyles.retryButton} 
+                  onPress={() => {
+                    setShowReceiptModal(false);
+                    saveRetry(selectedReceipt);
+                  }}
+                >
+                  <Text style={modalStyles.retryButtonText}>Retry</Text>
+                </TouchableOpacity>
               </View>
             </View>
           </View>
@@ -547,6 +560,28 @@ export default function ReceiptsScreen() {
       
       {/* Receipt Detail Modal */}
       <ReceiptDetailModal />
+      
+      {/* Retry Modals */}
+      <ExploreModals
+        showRetrySuccessModal={showRetrySuccessModal}
+        onCloseRetrySuccessModal={() => {
+          setShowRetrySuccessModal(false);
+          setCurrentRetryReceipt(null);
+        }}
+        showRetryErrorModal={showRetryErrorModal}
+        retryErrorMessage={retryErrorMessage}
+        onCloseRetryErrorModal={() => {
+          setShowRetryErrorModal(false);
+          setRetryErrorMessage('');
+          setCurrentRetryReceipt(null);
+        }}
+        onTryRetryAgain={() => {
+          setShowRetryErrorModal(false);
+          if (currentRetryReceipt) {
+            saveRetry(currentRetryReceipt);
+          }
+        }}
+      />
     </View>
   );
 }

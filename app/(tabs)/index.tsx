@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Alert, Dimensions, AppState } from 'react-native';
+import { View, Text, TouchableOpacity, Dimensions, AppState } from 'react-native';
 import { CameraView, Camera } from 'expo-camera';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -10,7 +10,10 @@ import { useFocusEffect } from '@react-navigation/native';
 import { getTransactionByID } from '../../hooks/getTransactionByID';
 import { SymmetricKey } from '@bsv/sdk';
 import { scannerStyles as styles } from '../../styles/scannerStyles';
-import { ScannerModals } from '../../components/ScannerModals';
+import { ScannerModals } from '../../components/modals/ScannerModals';
+import { decryptJSON } from '../../utils/decryption';
+import { saveStoreName } from '../../utils/saveStoreName';
+import { hexToBytes } from '../../utils/keyConversion';
 
 const { width, height } = Dimensions.get('window');
 
@@ -242,51 +245,6 @@ export default function QRScannerScreen() {
     setScanned(false);
     setScanning(true);
   };
-
-  // Store Names Management
-  const saveStoreName = async (storeName: string) => {
-    try {
-      const existingStores = await AsyncStorage.getItem('storeNames');
-      const stores = existingStores ? JSON.parse(existingStores) : [];
-      
-      // Only add if store name doesn't already exist (case-insensitive)
-      const storeExists = stores.some((store: string) => 
-        store.toLowerCase() === storeName.toLowerCase()
-      );
-      
-      if (!storeExists) {
-        stores.push(storeName);
-        // Sort alphabetically for better organization
-        stores.sort((a: string, b: string) => a.localeCompare(b));
-        await AsyncStorage.setItem('storeNames', JSON.stringify(stores));
-        console.log('Store name saved:', storeName);
-      } else {
-        console.log('Store name already exists:', storeName);
-      }
-    } catch (error) {
-      console.error('Error saving store name:', error);
-    }
-  };
-
-  // Helper function to convert hex string to byte array
-  function hexToBytes(hex: string): number[] {
-    const bytes = []
-    for (let i = 0; i < hex.length; i += 2) {
-      bytes.push(parseInt(hex.substr(i, 2), 16))
-    }
-    return bytes
-  }
-
-  function decryptJSON(encryptedData: number[], key: SymmetricKey) {
-    // Remove the first 3 items from the array
-    encryptedData = encryptedData.slice(3);
-    console.log("Key: ", key);
-    console.log("Encrypted data: ", encryptedData);
-    const jsonString = key.decrypt(encryptedData, 'utf8') as string;
-    console.log("Decrypted JSON string: ", jsonString);
-    return JSON.parse(jsonString);
-  }
-
 
 
   if (hasPermission === null) {

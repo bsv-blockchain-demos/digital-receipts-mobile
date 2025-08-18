@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { modalStyles } from '../styles/modalStyles';
+import { modalStyles } from '../../styles/modalStyles';
 
 interface ScannerModalsProps {
   // Duplicate Receipt Modal
