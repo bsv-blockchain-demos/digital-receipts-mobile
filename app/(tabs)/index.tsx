@@ -143,12 +143,16 @@ export default function QRScannerScreen() {
 
       if (output && 'lockingScript' in output) {
         const lockingScript = output.lockingScript;
-        // @ts-expect-error chunks exists at runtime
         encryptedReceiptData = lockingScript?.chunks[1]?.data as number[];
       }
 
+      console.log("Encrypted receipt data: ", encryptedReceiptData);
+
       const key = new SymmetricKey(hexToBytes(receiptData.symkeyString));
       const decryptedReceiptData = decryptJSON(encryptedReceiptData, key);
+
+      console.log("Decrypted receipt data: ", decryptedReceiptData);
+      console.log("Key: ", key);
 
       // Save store name to localStorage if decryption was successful and store name exists
       if (decryptedReceiptData?.store?.name) {
@@ -274,7 +278,12 @@ export default function QRScannerScreen() {
   }
 
   function decryptJSON(encryptedData: number[], key: SymmetricKey) {
+    // Remove the first 3 items from the array
+    encryptedData = encryptedData.slice(3);
+    console.log("Key: ", key);
+    console.log("Encrypted data: ", encryptedData);
     const jsonString = key.decrypt(encryptedData, 'utf8') as string;
+    console.log("Decrypted JSON string: ", jsonString);
     return JSON.parse(jsonString);
   }
 

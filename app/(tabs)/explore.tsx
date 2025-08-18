@@ -141,7 +141,7 @@ export default function ReceiptsScreen() {
   const FilterTags = () => {
     return (
       <View style={styles.filterContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScrollView}>
+        <View style={styles.filterScrollView}>
           {/* Add Filter Button */}
           <TouchableOpacity 
             style={styles.addFilterTag}
@@ -173,7 +173,7 @@ export default function ReceiptsScreen() {
               <Text style={styles.addFilterText}>Clear all</Text>
             </TouchableOpacity>
           )}
-        </ScrollView>
+        </View>
       </View>
     );
   };

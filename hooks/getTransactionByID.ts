@@ -1,4 +1,4 @@
-import { LookupResolver } from '@bsv/sdk';
+import { LookupResolver, Transaction } from '@bsv/sdk';
 
 const overlay = new LookupResolver({
     slapTrackers: ['https://overlay-us-1.bsvb.tech'],
@@ -15,5 +15,7 @@ export const getTransactionByID = async (txid: string) => {
         }
     }, 10000);
 
-    return response;
+    const transaction = Transaction.fromBEEF(response?.outputs[0].beef);
+
+    return transaction;
 };

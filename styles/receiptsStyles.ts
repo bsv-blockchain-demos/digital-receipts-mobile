@@ -373,6 +373,8 @@ export const receiptsStyles = StyleSheet.create({
   },
   filterScrollView: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'flex-start',
   },
   filterTag: {
     backgroundColor: 'rgba(168, 85, 247, 0.2)', // purple-500/20
@@ -382,6 +384,7 @@ export const receiptsStyles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     marginRight: 8,
+    marginBottom: 8,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -399,6 +402,7 @@ export const receiptsStyles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     marginRight: 8,
+    marginBottom: 8,
     flexDirection: 'row',
     alignItems: 'center',
   },
