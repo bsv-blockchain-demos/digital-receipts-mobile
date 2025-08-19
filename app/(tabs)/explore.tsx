@@ -506,17 +506,6 @@ export default function ReceiptsScreen() {
               <Text style={modalStyles.environmentalSubtext}>
                 Let's keep our planet green - Thank you!
               </Text>
-
-              {/* QR Code Section */}
-              <View style={modalStyles.qrSection}>
-                <Text style={modalStyles.qrText}>Scan for PDF</Text>
-                <Text style={modalStyles.qrSubtext}>For receipt as e-mail</Text>
-              </View>
-
-              {/* Footer */}
-              <Text style={modalStyles.receiptFooter}>
-                This receipt was rendered with the help of our partner Bakery Gmbh
-              </Text>
             </View>
           </View>
         </View>
