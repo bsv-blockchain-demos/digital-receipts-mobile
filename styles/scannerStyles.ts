@@ -4,6 +4,7 @@ export const scannerStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0f172a', // slate-900
+    height: '100%'
   },
   header: {
     paddingTop: 60,
@@ -147,6 +148,7 @@ export const scannerStyles = StyleSheet.create({
     lineHeight: 22,
   },
   bottomButtonContainer: {
+    height: 190,
     paddingHorizontal: 20,
     paddingBottom: 40,
     paddingTop: 20,
