@@ -1,0 +1,87 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle for better visibility -->
+  <circle cx="100" cy="100" r="95" fill="none" stroke="#334155" stroke-width="2" opacity="0.3"/>
+  
+  <!-- Digital Receipt Body -->
+  <rect x="60" y="40" width="80" height="120" rx="8" ry="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+  
+  <!-- Receipt Header -->
+  <rect x="65" y="45" width="70" height="8" rx="2" fill="#64748b"/>
+  <rect x="65" y="57" width="50" height="4" rx="1" fill="#94a3b8"/>
+  
+  <!-- Receipt Items (lines) -->
+  <rect x="65" y="70" width="60" height="3" rx="1" fill="#64748b"/>
+  <rect x="65" y="78" width="45" height="3" rx="1" fill="#64748b"/>
+  <rect x="65" y="86" width="55" height="3" rx="1" fill="#64748b"/>
+  <rect x="65" y="94" width="40" height="3" rx="1" fill="#64748b"/>
+  
+  <!-- Receipt Total -->
+  <rect x="65" y="108" width="70" height="4" rx="1" fill="#1e293b"/>
+  
+  <!-- QR Code representation -->
+  <rect x="105" y="120" width="25" height="25" rx="2" fill="#1e293b"/>
+  <rect x="107" y="122" width="3" height="3" fill="#f8fafc"/>
+  <rect x="112" y="122" width="3" height="3" fill="#f8fafc"/>
+  <rect x="117" y="122" width="3" height="3" fill="#f8fafc"/>
+  <rect x="122" y="122" width="3" height="3" fill="#f8fafc"/>
+  <rect x="127" y="122" width="3" height="3" fill="#f8fafc"/>
+  
+  <rect x="107" y="127" width="3" height="3" fill="#f8fafc"/>
+  <rect x="117" y="127" width="3" height="3" fill="#f8fafc"/>
+  <rect x="127" y="127" width="3" height="3" fill="#f8fafc"/>
+  
+  <rect x="107" y="132" width="3" height="3" fill="#f8fafc"/>
+  <rect x="112" y="132" width="3" height="3" fill="#f8fafc"/>
+  <rect x="122" y="132" width="3" height="3" fill="#f8fafc"/>
+  <rect x="127" y="132" width="3" height="3" fill="#f8fafc"/>
+  
+  <rect x="107" y="137" width="3" height="3" fill="#f8fafc"/>
+  <rect x="117" y="137" width="3" height="3" fill="#f8fafc"/>
+  <rect x="122" y="137" width="3" height="3" fill="#f8fafc"/>
+  
+  <rect x="107" y="142" width="3" height="3" fill="#f8fafc"/>
+  <rect x="112" y="142" width="3" height="3" fill="#f8fafc"/>
+  <rect x="117" y="142" width="3" height="3" fill="#f8fafc"/>
+  <rect x="122" y="142" width="3" height="3" fill="#f8fafc"/>
+  <rect x="127" y="142" width="3" height="3" fill="#f8fafc"/>
+  
+  <!-- Blockchain connection nodes -->
+  <circle cx="40" cy="80" r="6" fill="#10b981" stroke="#065f46" stroke-width="2"/>
+  <circle cx="160" cy="80" r="6" fill="#10b981" stroke="#065f46" stroke-width="2"/>
+  <circle cx="40" cy="120" r="6" fill="#10b981" stroke="#065f46" stroke-width="2"/>
+  <circle cx="160" cy="120" r="6" fill="#10b981" stroke="#065f46" stroke-width="2"/>
+  
+  <!-- Connection lines to receipt -->
+  <line x1="46" y1="80" x2="60" y2="80" stroke="#10b981" stroke-width="2" opacity="0.7"/>
+  <line x1="140" y1="80" x2="154" y2="80" stroke="#10b981" stroke-width="2" opacity="0.7"/>
+  <line x1="46" y1="120" x2="60" y2="120" stroke="#10b981" stroke-width="2" opacity="0.7"/>
+  <line x1="140" y1="120" x2="154" y2="120" stroke="#10b981" stroke-width="2" opacity="0.7"/>
+  
+  <!-- Blockchain network connections -->
+  <line x1="40" y1="86" x2="40" y2="114" stroke="#10b981" stroke-width="2" opacity="0.5"/>
+  <line x1="160" y1="86" x2="160" y2="114" stroke="#10b981" stroke-width="2" opacity="0.5"/>
+  
+  <!-- Digital/Tech accent -->
+  <circle cx="100" cy="25" r="3" fill="#3b82f6" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="100" cy="175" r="3" fill="#3b82f6" opacity="0.8">
+    <animate attributeName="opacity" values="0.3;0.8;0.3" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Rotating elements for spinner animation -->
+  <g class="spinner-elements">
+    <circle cx="25" cy="100" r="2" fill="#10b981" opacity="0.6">
+      <animateTransform attributeName="transform" type="rotate" values="0 100 100;360 100 100" dur="3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="175" cy="100" r="2" fill="#10b981" opacity="0.6">
+      <animateTransform attributeName="transform" type="rotate" values="0 100 100;360 100 100" dur="3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="100" cy="25" r="2" fill="#3b82f6" opacity="0.6">
+      <animateTransform attributeName="transform" type="rotate" values="0 100 100;360 100 100" dur="4s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="100" cy="175" r="2" fill="#3b82f6" opacity="0.6">
+      <animateTransform attributeName="transform" type="rotate" values="0 100 100;360 100 100" dur="4s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+</svg>

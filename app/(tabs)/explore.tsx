@@ -1,14 +1,16 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, RefreshControl, ScrollView } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { BlurView } from 'expo-blur';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { receiptsStyles } from '../../styles/receiptsStyles';
-import { modalStyles } from '../../styles/modalStyles';
-import saveReceiptRetry from '../../hooks/saveReceiptRetry';
+import { BlurView } from 'expo-blur';
+import { StatusBar } from 'expo-status-bar';
+import React, { useCallback, useState } from 'react';
+import { FlatList, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import LoadingScreen from '../../components/LoadingScreen';
 import { ExploreModals } from '../../components/modals/ExploreModals';
+import InlineSpinner from '../../components/ui/InlineSpinner';
+import saveReceiptRetry from '../../hooks/saveReceiptRetry';
+import { modalStyles } from '../../styles/modalStyles';
+import { receiptsStyles } from '../../styles/receiptsStyles';
 
 const styles = receiptsStyles;
 
@@ -37,6 +39,8 @@ export default function ReceiptsScreen() {
   const [showRetryErrorModal, setShowRetryErrorModal] = useState(false);
   const [retryErrorMessage, setRetryErrorMessage] = useState('');
   const [currentRetryReceipt, setCurrentRetryReceipt] = useState<Receipt | null>(null);
+  const [showLoadingSpinner, setShowLoadingSpinner] = useState(false);
+  const [showRetryLoadingSpinner, setShowRetryLoadingSpinner] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -144,21 +148,26 @@ export default function ReceiptsScreen() {
 
   const saveRetry = async (receiptData: Receipt) => {
     try {
-      setShowReceiptModal(false);
       setCurrentRetryReceipt(receiptData);
-      const retryResult =await saveReceiptRetry(receiptData);
+      const retryResult = await saveReceiptRetry(receiptData);
       if (!retryResult) {
         setRetryErrorMessage('Failed to retry fetching receipt data');
         setShowRetryErrorModal(true);
+        setShowLoadingSpinner(false);
+        setShowReceiptModal(false);
         return;
       }
       // Reload receipts to get updated data
       await loadReceipts();
       setShowRetrySuccessModal(true);
+      setShowLoadingSpinner(false);
+      setShowReceiptModal(false);
     } catch (error) {
       console.error('Error saving receipt:', error);
       setRetryErrorMessage(error instanceof Error ? error.message : 'Failed to retry fetching receipt data');
       setShowRetryErrorModal(true);
+      setShowLoadingSpinner(false);
+      setShowReceiptModal(false);
     }
   };
 
@@ -392,15 +401,17 @@ export default function ReceiptsScreen() {
                 <Text style={modalStyles.errorText}>
                   The full receipt data could not be decrypted or retrieved from the blockchain.
                 </Text>
+                {showLoadingSpinner ? <InlineSpinner size={20}/> : (
                 <TouchableOpacity 
                   style={modalStyles.retryButton} 
                   onPress={() => {
-                    setShowReceiptModal(false);
+                    setShowLoadingSpinner(true);
                     saveRetry(selectedReceipt);
                   }}
                 >
                   <Text style={modalStyles.retryButtonText}>Retry</Text>
                 </TouchableOpacity>
+                )}
               </View>
             </View>
           </View>
@@ -512,6 +523,10 @@ export default function ReceiptsScreen() {
     );
   };
 
+  if (loading) {
+    return <LoadingScreen message="Loading receipts..." size={50} showMessage={true} />;
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
@@ -575,12 +590,14 @@ export default function ReceiptsScreen() {
           setRetryErrorMessage('');
           setCurrentRetryReceipt(null);
         }}
-        onTryRetryAgain={() => {
-          setShowRetryErrorModal(false);
+        onTryRetryAgain={async () => {
           if (currentRetryReceipt) {
-            saveRetry(currentRetryReceipt);
+            setShowRetryLoadingSpinner(true);
+            await saveRetry(currentRetryReceipt);
+            setShowRetryLoadingSpinner(false);
           }
         }}
+        showRetryLoadingSpinner={showRetryLoadingSpinner}
       />
     </View>
   );

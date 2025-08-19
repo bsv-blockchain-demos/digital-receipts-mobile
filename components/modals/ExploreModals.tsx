@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { modalStyles } from '../../styles/modalStyles';
+import InlineSpinner from '../ui/InlineSpinner';
 
 interface ExploreModalsProps {
   // Retry Success Modal
@@ -13,6 +14,7 @@ interface ExploreModalsProps {
   retryErrorMessage: string;
   onCloseRetryErrorModal: () => void;
   onTryRetryAgain: () => void;
+  showRetryLoadingSpinner: boolean;
 }
 
 export const ExploreModals: React.FC<ExploreModalsProps> = ({
@@ -22,6 +24,7 @@ export const ExploreModals: React.FC<ExploreModalsProps> = ({
   retryErrorMessage,
   onCloseRetryErrorModal,
   onTryRetryAgain,
+  showRetryLoadingSpinner,
 }) => {
   
   // Retry Success Modal
@@ -68,7 +71,7 @@ export const ExploreModals: React.FC<ExploreModalsProps> = ({
               <Text style={modalStyles.errorText}>
                 {retryErrorMessage || 'Unable to retrieve receipt data from the blockchain. Please check your connection and try again.'}
               </Text>
-              
+              {showRetryLoadingSpinner ? <InlineSpinner size={20}/> : (
               <View style={modalStyles.deleteModalButtons}>
                 <TouchableOpacity 
                   style={modalStyles.cancelButton}
@@ -79,11 +82,14 @@ export const ExploreModals: React.FC<ExploreModalsProps> = ({
                 
                 <TouchableOpacity 
                   style={modalStyles.deleteConfirmButton}
-                  onPress={onTryRetryAgain}
+                  onPress={() => {
+                    onTryRetryAgain();
+                  }}
                 >
                   <Text style={modalStyles.deleteConfirmButtonText}>Try Again</Text>
                 </TouchableOpacity>
               </View>
+              )}
             </View>
           </View>
         </View>

@@ -1,50 +1,127 @@
-# Welcome to your Expo app 👋
+# 📱 Digital Receipts Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Reduce paper waste with blockchain-powered digital receipts**
 
-## Get started
+A React Native mobile application that enables users to scan QR codes containing BSV blockchain-backed digital receipts, helping reduce environmental impact by eliminating paper receipts.
 
-1. Install dependencies
+## 🌱 Environmental Impact
 
+This app addresses the growing environmental concern of paper receipt waste:
+- **7 billion trees** are cut down annually for paper receipts
+- **250 million gallons** of oil are used in receipt production
+- **10 billion gallons** of water are consumed in the process
+- Most receipts contain **BPA chemicals** and cannot be recycled
+
+By digitizing receipts on the BSV blockchain, we create a sustainable, permanent, and easily accessible solution.
+
+## ✨ Features
+
+- **🔍 QR Code Scanning**: Instantly scan QR codes to capture digital receipts
+- **⛓️ BSV Blockchain Integration**: Receipts are stored securely on the BSV blockchain
+- **📱 Cross-Platform**: Works on iOS, Android, and Web
+- **💾 Local Storage**: Receipts are cached locally for offline access
+- **🔒 Secure**: Cryptographic verification ensures receipt authenticity
+- **🌐 Decentralized**: No central server dependency for receipt storage
+- **♻️ Eco-Friendly**: Eliminates paper waste and reduces environmental footprint
+
+## 🛠️ Technology Stack
+
+- **Frontend**: React Native with Expo
+- **Blockchain**: BSV (Bitcoin Satoshi Vision)
+- **Navigation**: Expo Router with file-based routing
+- **Camera**: Expo Camera & Barcode Scanner
+- **Storage**: AsyncStorage for local data persistence
+- **Styling**: React Native StyleSheet with custom themes
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js (v18 or later)
+- npm or yarn
+- Expo CLI
+- iOS Simulator (for iOS development) or Android Studio (for Android development)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd receipts-mobile
+   ```
+
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-2. Start the app
-
+3. **Start the development server**
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+4. **Run on your preferred platform**
+   - Press `i` for iOS Simulator
+   - Press `a` for Android Emulator
+   - Press `w` for Web
+   - Scan QR code with Expo Go app on your device
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### Available Scripts
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- `npm start` - Start the Expo development server
+- `npm run android` - Start on Android emulator
+- `npm run ios` - Start on iOS simulator
+- `npm run web` - Start web version
+- `npm run lint` - Run ESLint
 
-## Get a fresh project
+## 📱 How It Works
 
-When you're ready, run:
+1. **Scan QR Code**: Use the in-app camera to scan a QR code containing receipt data
+2. **Blockchain Verification**: The app verifies the receipt data against the BSV blockchain
+3. **Local Storage**: Verified receipts are stored locally for quick access
+4. **View & Manage**: Browse your digital receipts in an organized interface
 
-```bash
-npm run reset-project
+## 🏗️ Project Structure
+
+```
+receipts-mobile/
+├── app/                    # Main application screens (file-based routing)
+│   ├── (tabs)/            # Tab-based navigation screens
+│   │   ├── index.tsx      # Home/Receipts screen
+│   │   └── explore.tsx    # Explore/Scanner screen
+│   └── _layout.tsx        # Root layout component
+├── components/            # Reusable UI components
+│   ├── modals/           # Modal components
+│   └── ui/               # UI utility components
+├── hooks/                # Custom React hooks
+├── utils/                # Utility functions
+│   ├── decryption.ts     # Cryptographic utilities
+│   └── keyConversion.ts  # Key format conversion
+├── styles/               # Style definitions
+└── constants/            # App constants and configuration
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 🔧 Key Dependencies
 
-## Learn more
+- **@bsv/sdk**: BSV blockchain integration
+- **expo-barcode-scanner**: QR code scanning functionality
+- **expo-camera**: Camera access for scanning
+- **@react-native-async-storage/async-storage**: Local data persistence
+- **expo-router**: File-based navigation system
 
-To learn more about developing your project with Expo, look at the following resources:
+## 🌐 BSV Blockchain Integration
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+This app leverages the BSV blockchain for:
+- **Immutable Storage**: Receipts are permanently stored on-chain
+- **Verification**: Cryptographic proof of receipt authenticity
+- **Decentralization**: No reliance on centralized databases
+- **Scalability**: BSV's high throughput supports millions of transactions
+- **Cost-Effective**: Low transaction fees make micro-transactions viable
 
-## Join the community
+## 🧪 Development
 
-Join our community of developers creating universal apps.
+### File-Based Routing
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+This project uses Expo Router's file-based routing system. Routes are automatically generated based on the file structure in the `app/` directory.
+
+**Join us in creating a more sustainable future, one digital receipt at a time! 🌍**
