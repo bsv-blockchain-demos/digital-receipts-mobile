@@ -1,7 +1,6 @@
-import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { modalStyles } from '../../styles/modalStyles';
 
 interface ScannerModalsProps {
@@ -26,7 +25,7 @@ interface ScannerModalsProps {
   onTryAgain: () => void;
 }
 
-export const ScannerModals: React.FC<ScannerModalsProps> = ({
+export const ScannerModals = ({
   showDuplicateModal,
   pendingReceiptData,
   saving,
@@ -41,7 +40,7 @@ export const ScannerModals: React.FC<ScannerModalsProps> = ({
   errorMessage,
   onCloseErrorModal,
   onTryAgain,
-}) => {
+}: ScannerModalsProps) => {
   
   // Duplicate Receipt Confirmation Modal
   const DuplicateReceiptModal = () => {

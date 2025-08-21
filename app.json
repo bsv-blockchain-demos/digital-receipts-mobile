@@ -1,29 +1,33 @@
 {
   "expo": {
-    "name": "receipts-mobile",
+    "name": "Receipts",
     "slug": "receipts-mobile",
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#1E293B"
     },
-    "version": "1.0.0",
+    "version": "0.1.1",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
     "scheme": "receiptsmobile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bsvb.receiptsmobile",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "package": "com.bsvb.receiptsmobile",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/splash-icon.png",
         "backgroundColor": "#1E293B"
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
-        "android.permission.CAMERA",
         "android.permission.CAMERA"
       ]
     },
@@ -42,11 +46,17 @@
           "resizeMode": "contain",
           "backgroundColor": "#1E293B"
         }
-      ],
-      "expo-barcode-scanner"
+      ]
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "7a059da4-9c41-42a6-9595-1b45277256c3"
+      }
+    },
+    "owner": "bsvb"
   }
 }
