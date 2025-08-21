@@ -1,9 +1,9 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getTransactionByID } from './getTransactionByID';
-import { decryptJSON } from '../utils/decryption';
 import { SymmetricKey } from '@bsv/sdk';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { decryptJSON } from '../utils/decryption';
 import { hexToBytes } from '../utils/keyConversion';
 import { saveStoreName } from '../utils/saveStoreName';
+import { getTransactionByID } from './getTransactionByID';
 
 const saveReceiptRetry = async (receiptData: any) => {
     try {
@@ -12,13 +12,21 @@ const saveReceiptRetry = async (receiptData: any) => {
 
         // Get full tx from Overlay to get the actual receipt data back
         const fullTx = await getTransactionByID(receiptData.txid);
-        console.log(fullTx);
-        const output = fullTx?.outputs[0];
+        console.log(JSON.stringify(fullTx));
         let encryptedReceiptData: number[] = [];
 
-        if (output && 'lockingScript' in output) {
-            const lockingScript = output.lockingScript;
-            encryptedReceiptData = lockingScript?.chunks[1]?.data as number[];
+        if (fullTx && 'outputs' in fullTx) {
+            for (const output of fullTx.outputs) {
+                if (output.satoshis !== undefined && output.satoshis <= 2) {
+                    const lockingScript = output.lockingScript;
+                    for (const chunk of lockingScript.chunks) {
+                        if (chunk.op === 106) {
+                            encryptedReceiptData = chunk.data as number[];
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         if (!encryptedReceiptData) {

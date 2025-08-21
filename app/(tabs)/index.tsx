@@ -1,19 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Dimensions, AppState } from 'react-native';
-import { CameraView, Camera } from 'expo-camera';
-import { StatusBar } from 'expo-status-bar';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
-import { getTransactionByID } from '../../hooks/getTransactionByID';
 import { SymmetricKey } from '@bsv/sdk';
-import { scannerStyles as styles } from '../../styles/scannerStyles';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+import { BlurView } from 'expo-blur';
+import { Camera, CameraView } from 'expo-camera';
+import { LinearGradient } from 'expo-linear-gradient';
+import { StatusBar } from 'expo-status-bar';
+import React, { useEffect, useRef, useState } from 'react';
+import { AppState, Dimensions, Text, TouchableOpacity, View } from 'react-native';
 import { ScannerModals } from '../../components/modals/ScannerModals';
+import { getTransactionByID } from '../../hooks/getTransactionByID';
+import { scannerStyles as styles } from '../../styles/scannerStyles';
 import { decryptJSON } from '../../utils/decryption';
-import { saveStoreName } from '../../utils/saveStoreName';
 import { hexToBytes } from '../../utils/keyConversion';
+import { saveStoreName } from '../../utils/saveStoreName';
 
 const { width, height } = Dimensions.get('window');
 
@@ -141,12 +141,20 @@ export default function QRScannerScreen() {
       // Get full tx from Overlay to get the actual receipt data back
       const fullTx = await getTransactionByID(receiptData.txid);
       console.log(fullTx);
-      const output = fullTx?.outputs[0];
       let encryptedReceiptData: number[] = [];
 
-      if (output && 'lockingScript' in output) {
-        const lockingScript = output.lockingScript;
-        encryptedReceiptData = lockingScript?.chunks[1]?.data as number[];
+      if (fullTx && 'outputs' in fullTx) {
+        for (const output of fullTx.outputs) {
+          if (output.satoshis !== undefined && output.satoshis <= 2) {
+            const lockingScript = output.lockingScript;
+            for (const chunk of lockingScript.chunks) {
+              if (chunk.op === 106) {
+                encryptedReceiptData = chunk.data as number[];
+                break;
+              }
+            }
+          }
+        }
       }
 
       console.log("Encrypted receipt data: ", encryptedReceiptData);
@@ -176,7 +184,7 @@ export default function QRScannerScreen() {
       receipts.push(newReceipt);
       await AsyncStorage.setItem('scannedReceipts', JSON.stringify(receipts));
       setReceiptsCount(receipts.length);
-      
+
       // Show success modal
       setSuccessMessage('Receipt has been saved successfully!');
       setShowSuccessModal(true);
@@ -196,7 +204,7 @@ export default function QRScannerScreen() {
       receipts.push(newReceipt);
       await AsyncStorage.setItem('scannedReceipts', JSON.stringify(receipts));
       setReceiptsCount(receipts.length);
-      
+
       setSuccessMessage('Receipt saved but decryption failed.');
       setShowSuccessModal(true);
     }
@@ -303,7 +311,7 @@ export default function QRScannerScreen() {
                   }}
                 />
               )}
-              
+
               {/* Camera inactive state */}
               {(!scanning || !hasPermission) && (
                 <View style={styles.cameraInactive}>
@@ -313,7 +321,7 @@ export default function QRScannerScreen() {
                   </Text>
                 </View>
               )}
-              
+
               {/* Scanning Overlay */}
               <View style={styles.overlay}>
                 <View style={styles.scanArea}>

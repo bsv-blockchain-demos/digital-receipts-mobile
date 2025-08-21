@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 import { StatusBar } from 'expo-status-bar';
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { FlatList, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import LoadingScreen from '../../components/LoadingScreen';
 import { ExploreModals } from '../../components/modals/ExploreModals';
@@ -94,10 +94,11 @@ export default function ReceiptsScreen() {
     setFilteredReceipts(filtered);
   };
 
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    loadReceipts();
-    loadAvailableStores();
+    await loadReceipts();
+    await loadAvailableStores();
+    setRefreshing(false);
   };
 
   // Store filtering functions
@@ -132,6 +133,7 @@ export default function ReceiptsScreen() {
     try {
       const updatedReceipts = receipts.filter(receipt => receipt.id !== receiptToDelete.id);
       setReceipts(updatedReceipts);
+      filterReceipts(updatedReceipts, selectedStores);
       await AsyncStorage.setItem('scannedReceipts', JSON.stringify(updatedReceipts));
     } catch (error) {
       console.error('Error deleting receipt:', error);
