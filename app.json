@@ -17,7 +17,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.bsvb.receiptsmobile",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "This app uses the camera to scan and capture digital receipts for secure storage on the blockchain."
       }
     },
     "android": {
