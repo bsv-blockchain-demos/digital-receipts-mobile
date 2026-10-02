@@ -65,4 +65,4 @@ A web export or type-check cannot validate camera access, native behaviour or in
 
 ## Licence
 
-This checkout has no standalone licence file or `license` field in `package.json`. The intended licence needs confirmation.
+**Open BSV Licence v6.** See [LICENSE.txt](LICENSE.txt) for the full terms. The licence applies to this project's original code and documentation and restricts use to the BSV blockchain defined in the licence. Third-party code, assets and referenced standards retain their respective terms.
