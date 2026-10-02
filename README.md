@@ -1,127 +1,68 @@
-# 📱 Digital Receipts Mobile App
+# Digital Receipts Mobile
 
-**Reduce paper waste with blockchain-powered digital receipts**
+An Expo and React Native companion to [Digital Receipts POS](https://github.com/bsv-blockchain-demos/digital-receipts-pos). It scans receipt QR codes, retrieves transaction data from a BSV overlay, attempts local decryption and stores receipts on the device for later viewing.
 
-A React Native mobile application that enables users to scan QR codes containing BSV blockchain-backed digital receipts, helping reduce environmental impact by eliminating paper receipts.
+**Current limitation:** the receipt parser does not match the companion POS transaction format. The app can save QR metadata while retrieval or decryption fails. Resolve the parsing issues below before relying on a complete receipt demonstration.
 
-## 🌱 Environmental Impact
+## Receipt flow
 
-This app addresses the growing environmental concern of paper receipt waste:
-- **7 billion trees** are cut down annually for paper receipts
-- **250 million gallons** of oil are used in receipt production
-- **10 billion gallons** of water are consumed in the process
-- Most receipts contain **BPA chemicals** and cannot be recycled
+1. The POS app creates an encrypted receipt transaction and displays a QR code containing `txid`, `timestamp` and `symkeyString`.
+2. The mobile app reads that JSON through `expo-camera`.
+3. It queries the `ls_anytx` service at `https://overlay-us-1.bsvb.tech` and parses the returned BEEF transaction.
+4. It attempts to extract and decrypt the receipt using the symmetric key in the QR code.
+5. It saves the QR fields, scan time and any decrypted receipt in AsyncStorage. The receipts screen supports viewing, store filtering, deletion and retrying failed retrievals.
 
-By digitizing receipts on the BSV blockchain, we create a sustainable, permanent, and easily accessible solution.
+The QR code contains the decryption key. Anyone with a copy of that code can attempt to read the corresponding receipt. Saved keys and decrypted receipt data use ordinary AsyncStorage, and the current code logs decryption material and receipt content. Use non-sensitive sample receipts.
 
-## ✨ Features
+## Run locally
 
-- **🔍 QR Code Scanning**: Instantly scan QR codes to capture digital receipts
-- **⛓️ BSV Blockchain Integration**: Receipts are stored securely on the BSV blockchain
-- **📱 Cross-Platform**: Works on iOS, Android, and Web
-- **💾 Local Storage**: Receipts are cached locally for offline access
-- **🔒 Secure**: Cryptographic verification ensures receipt authenticity
-- **🌐 Decentralized**: No central server dependency for receipt storage
-- **♻️ Eco-Friendly**: Eliminates paper waste and reduces environmental footprint
+Use Node.js 22 and npm. The project currently targets Expo SDK 53, React Native 0.79 and React 19. A device or development client must support that SDK version; compatibility with an arbitrary current Expo Go installation is not guaranteed.
 
-## 🛠️ Technology Stack
-
-- **Frontend**: React Native with Expo
-- **Blockchain**: BSV (Bitcoin Satoshi Vision)
-- **Navigation**: Expo Router with file-based routing
-- **Camera**: Expo Camera & Barcode Scanner
-- **Storage**: AsyncStorage for local data persistence
-- **Styling**: React Native StyleSheet with custom themes
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js (v18 or later)
-- npm or yarn
-- Expo CLI
-- iOS Simulator (for iOS development) or Android Studio (for Android development)
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd receipts-mobile
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Start the development server**
-   ```bash
-   npx expo start
-   ```
-
-4. **Run on your preferred platform**
-   - Press `i` for iOS Simulator
-   - Press `a` for Android Emulator
-   - Press `w` for Web
-   - Scan QR code with Expo Go app on your device
-
-### Available Scripts
-
-- `npm start` - Start the Expo development server
-- `npm run android` - Start on Android emulator
-- `npm run ios` - Start on iOS simulator
-- `npm run web` - Start web version
-- `npm run lint` - Run ESLint
-
-## 📱 How It Works
-
-1. **Scan QR Code**: Use the in-app camera to scan a QR code containing receipt data
-2. **Blockchain Verification**: The app verifies the receipt data against the BSV blockchain
-3. **Local Storage**: Verified receipts are stored locally for quick access
-4. **View & Manage**: Browse your digital receipts in an organized interface
-
-## 🏗️ Project Structure
-
-```
-receipts-mobile/
-├── app/                    # Main application screens (file-based routing)
-│   ├── (tabs)/            # Tab-based navigation screens
-│   │   ├── index.tsx      # Home/Receipts screen
-│   │   └── explore.tsx    # Explore/Scanner screen
-│   └── _layout.tsx        # Root layout component
-├── components/            # Reusable UI components
-│   ├── modals/           # Modal components
-│   └── ui/               # UI utility components
-├── hooks/                # Custom React hooks
-├── utils/                # Utility functions
-│   ├── decryption.ts     # Cryptographic utilities
-│   └── keyConversion.ts  # Key format conversion
-├── styles/               # Style definitions
-└── constants/            # App constants and configuration
+```sh
+git clone https://github.com/bsv-blockchain-demos/digital-receipts-mobile.git
+cd digital-receipts-mobile
+npm ci
+npm start
 ```
 
-## 🔧 Key Dependencies
+Follow the Expo terminal instructions to open a compatible device or simulator. Camera scanning needs camera permission and suitable camera hardware. Native iOS development needs macOS and Xcode; Android development needs the Android SDK and a device or emulator.
 
-- **@bsv/sdk**: BSV blockchain integration
-- **expo-barcode-scanner**: QR code scanning functionality
-- **expo-camera**: Camera access for scanning
-- **@react-native-async-storage/async-storage**: Local data persistence
-- **expo-router**: File-based navigation system
+| Command | Purpose |
+| --- | --- |
+| `npm start` | Start the Expo development server. |
+| `npm run android` | Generate/build the native Android project and run it locally. |
+| `npm run ios` | Generate/build the native iOS project and run it locally. |
+| `npm run web` | Start the web development target. |
+| `npx expo export --platform web` | Export the static web target to `dist/`. |
+| `npx tsc --noEmit` | Check TypeScript. |
+| `npm run lint` | Run Expo's ESLint command. |
 
-## 🌐 BSV Blockchain Integration
+No application environment variables or connected BSV wallet are required by the mobile reader. Transaction retrieval requires internet access and the configured overlay. Previously decrypted receipts can be viewed from local storage; a saved entry with no decrypted data still needs successful retrieval.
 
-This app leverages the BSV blockchain for:
-- **Immutable Storage**: Receipts are permanently stored on-chain
-- **Verification**: Cryptographic proof of receipt authenticity
-- **Decentralization**: No reliance on centralized databases
-- **Scalability**: BSV's high throughput supports millions of transactions
-- **Cost-Effective**: Low transaction fees make micro-transactions viable
+## Current integration gaps
 
-## 🧪 Development
+- The scanner and retry code read `chunk.data` from the `OP_RETURN` opcode. In the POS format, the encrypted payload is held in a separate data-push chunk after that opcode.
+- [utils/decryption.ts](utils/decryption.ts) also removes three bytes from the supplied ciphertext before decrypting, although the POS encryptor does not add that prefix to the ciphertext.
+- On failure, the scanner still saves the QR fields with `fullReceiptData: null`. A saved entry therefore does not establish successful decryption or receipt authenticity.
+- The reader does not independently verify a merchant identity or receipt signature. The overlay is an external retrieval dependency.
+- The paper and carbon figures displayed in the interface are fixed demo values. This repository provides no methodology supporting environmental savings claims.
 
-### File-Based Routing
+A web export or type-check cannot validate camera access, native behaviour or interoperability with a live POS receipt.
 
-This project uses Expo Router's file-based routing system. Routes are automatically generated based on the file structure in the `app/` directory.
+## Native distribution
 
-**Join us in creating a more sustainable future, one digital receipt at a time! 🌍**
+[eas.json](eas.json) defines development, preview and production build profiles. `npm run build:ios` and `npm run build:android` invoke `eas`, which is not included in the package dependencies. They require an available EAS CLI, Expo account access and platform credentials.
+
+[app.json](app.json) includes the existing Expo owner, project ID and native application identifiers. Review those settings before building a separate distribution. The `reset-project` script refers to a missing `scripts/reset-project.js` and is currently unusable.
+
+## Code map
+
+- [app/(tabs)/index.tsx](app/%28tabs%29/index.tsx): scanner, QR parsing and initial receipt storage.
+- [app/(tabs)/explore.tsx](app/%28tabs%29/explore.tsx): saved receipts, filtering and detail views.
+- [hooks/getTransactionByID.ts](hooks/getTransactionByID.ts): overlay endpoint and transaction retrieval.
+- [hooks/saveReceiptRetry.ts](hooks/saveReceiptRetry.ts): retry handling.
+- [utils/decryption.ts](utils/decryption.ts): receipt decryption.
+
+## Licence
+
+This checkout has no standalone licence file or `license` field in `package.json`. The intended licence needs confirmation.
